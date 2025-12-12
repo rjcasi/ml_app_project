@@ -1,0 +1,73 @@
+import math
+from collections import Counter
+
+def shannon_entropy(data):
+    """Compute Shannon entropy H(X) for a list of symbols."""
+    counts = Counter(data)
+    total = len(data)
+    probs = [count / total for count in counts.values()]
+    return -sum(p * math.log2(p) for p in probs)
+
+# Example: coin flips
+flips = ["H", "T", "H", "H", "T", "T", "H"]
+print("Entropy:", shannon_entropy(flips))
+
+
+import numpy as np
+
+def mutual_information(x, y):
+    """Compute mutual information I(X;Y)."""
+    joint_counts = Counter(zip(x, y))
+    total = len(x)
+    px = Counter(x)
+    py = Counter(y)
+
+    mi = 0.0
+    for (xi, yi), joint_count in joint_counts.items():
+        pxy = joint_count / total
+        px_i = px[xi] / total
+        py_i = py[yi] / total
+        mi += pxy * math.log2(pxy / (px_i * py_i))
+    return mi
+
+# Example: correlated variables
+x = [0, 0, 1, 1, 0, 1, 1]
+y = [0, 0, 1, 1, 0, 1, 1]  # perfectly correlated
+print("Mutual Information:", mutual_information(x, y))
+
+
+import zlib
+
+def compression_score(data):
+    """Estimate structure via compression ratio."""
+    raw = "".join(map(str, data)).encode("utf-8")
+    compressed = zlib.compress(raw)
+    return len(compressed) / len(raw)
+
+# Example: random vs. repetitive
+random_data = [np.random.randint(0, 2) for _ in range(1000)]
+structured_data = [0] * 500 + [1] * 500
+
+print("Random score:", compression_score(random_data))
+print("Structured score:", compression_score(structured_data))
+
+
+
+class EntropyLab:
+    def __init__(self, data):
+        self.data = data
+
+    def entropy(self):
+        return shannon_entropy(self.data)
+
+    def mutual_info(self, other):
+        return mutual_information(self.data, other)
+
+    def structure(self):
+        return compression_score(self.data)
+
+# Demo
+lab = EntropyLab(["H","T","H","H","T","T","H"])
+print("Entropy:", lab.entropy())
+print("Structure score:", lab.structure())
+
