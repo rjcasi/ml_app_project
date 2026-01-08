@@ -1,20 +1,49 @@
 from fastapi import FastAPI
-from app.endpoints import gamma, beta, zeta, mittag_leffler, random_forest, hash_table
+from fastapi.middleware.cors import CORSMiddleware
+from app.router import router
+from app.config import settings
 
-app = FastAPI(
-    title="ML App Project",
-        description="Consultable cockpit of ML models and special functions",
-            version="1.0.0"
-            )
+def create_app() -> FastAPI:
+    app = FastAPI(
+        title=settings.PROJECT_NAME,
+        version="1.0.0",
+        description="Modular Scientific & ML API Suite"
+    )
 
-            # Include routers from each endpoint
-            app.include_router(gamma.router)
-            app.include_router(beta.router)
-            app.include_router(zeta.router)
-            app.include_router(mittag_leffler.router)
-            app.include_router(random_forest.router)
-            app.include_router(hash_table.router)
+    # -----------------------------
+    # CORS
+    # -----------------------------
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-            @app.get("/")
-            def root():
-                return {"message": "Welcome to the ML App Project cockpit!"}
+    # -----------------------------
+    # Routers
+    # -----------------------------
+    app.include_router(router)
+
+    # -----------------------------
+    # Health Check
+    # -----------------------------
+    @app.get("/health")
+    def health():
+        return {"status": "ok"}
+
+    # -----------------------------
+    # Startup / Shutdown Events
+    # -----------------------------
+    @app.on_event("startup")
+    async def startup_event():
+        print("🚀 ML App Project starting up...")
+
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        print("🛑 ML App Project shutting down...")
+
+    return app
+
+app = create_app()
